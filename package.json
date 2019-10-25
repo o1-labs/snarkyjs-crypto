@@ -11,8 +11,8 @@
   ],
   "author": "",
   "license": "MIT",
-  "devDependencies": {
+  "dependencies": {
     "bs-platform": "^5.0.6"
   },
-  "main": "universe.bs.js"
+  "main": "src/universe.bs.js"
 }
