@@ -13,5 +13,6 @@
   "license": "MIT",
   "devDependencies": {
     "bs-platform": "^5.0.6"
-  }
+  },
+  "main": "universe.bs.js"
 }
