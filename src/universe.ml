@@ -1,3 +1,5 @@
+module Field0 = Field
+
 module Make(C : sig val curve : Curve.t end) : Intf.S = struct
   module Field = Field.Make(C)
 
@@ -35,6 +37,77 @@ module Make(C : sig val curve : Curve.t end) : Intf.S = struct
     let hash = hash ?init:None params
   end
 
+  let () = assert (C.curve = Bn128)
+
+  module Group = Group.BabyJubJub(Field)
+
+  module Schnorr = struct
+    module T = Signature.Make_signer(struct
+        module Hash = Hash
+        module Group = Group
+        module Scalar = Group.Scalar
+        module Field = struct
+          include Field
+          let is_even t = not (Field0.BigInt.testBit t 0)
+
+          let size_in_bits = sizeInBits
+        end
+
+        module Bool = struct
+          type t = bool
+          let (&&) = (&&)
+        end
+      end)
+
+    let sign = T.sign
+
+    module Signature = struct
+      include T.Signature
+      let check = T.check
+
+      let toJSON ((rx, s) : t) =
+        Obj.magic [| Field.toString rx; Group.Scalar.toString s |]
+    end
+
+    module PublicKey = struct
+      type t = T.Public_key.t
+
+      let ofPrivateKey = T.Public_key.of_private_key
+      let toJSON : t -> _ = Group.toJSON
+    end
+
+    module PrivateKey = struct
+      type t = T.Private_key.t
+
+      (* The type is a slight fib... *)
+
+      type buffer
+
+      let bufferGet : buffer -> int -> int = [%raw "(b, i) => b[i]"]
+
+      let randomBytes : int -> buffer = [%raw "(x) => crypto.randomBytes(x)"]
+
+      let create () =
+        let n = 31 in
+        let arr = randomBytes n in
+        let eight = Field0.BigInt.ofInt 8 in
+        let rec go acc i =
+          if i = n
+          then acc
+          else (
+            let acc = Field0.BigInt.shiftLeft acc eight in
+            go 
+              Field0.BigInt.(logOr acc (ofInt (bufferGet arr i)))
+              (i + 1)
+          )
+        in
+        go (Field0.BigInt.ofInt 0) 0
+
+      let toJSON t : < > Js.t =
+        Obj.magic (Field0.BigInt.toString t)
+    end
+  end
+
   module MerkleTree = Merkle_tree.Make(struct
       type t = Hash.t
       let equal = Field.equal
@@ -43,8 +116,25 @@ module Make(C : sig val curve : Curve.t end) : Intf.S = struct
 end
 
 let make_obj (type field) (module M : Intf.S with type Field.t = field)
-    : field Intf.Obj.obj
   = 
+  let schnorr =
+    let open M.Schnorr in
+    [%bs.obj {
+      _PrivateKey= {
+        create=PrivateKey.create;
+        toJSON=PrivateKey.toJSON;
+      };
+      _PublicKey= {
+        ofPrivateKey=PublicKey.ofPrivateKey;
+        toJSON=PublicKey.toJSON;
+      };
+      _Signature= {
+        check=Signature.check;
+        toJSON=Signature.toJSON;
+      };
+      sign=sign;
+    }]
+  in
   let field =
     let open M.Field in
     [%bs.obj {
@@ -91,12 +181,12 @@ let make_obj (type field) (module M : Intf.S with type Field.t = field)
       _MembershipProof= membership_proof;
     }]
   in
-
+  Obj.magic
   [%bs.obj {
     _Field= field;
     _Hash = hash;
-    _MerkleTree = merkle_tree
-    ;
+    _MerkleTree = merkle_tree;
+    _Schnorr=schnorr;
   }]
 
 module Bn128 = Make(struct let curve = Curve.Bn128 end)

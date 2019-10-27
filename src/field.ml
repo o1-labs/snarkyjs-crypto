@@ -21,6 +21,12 @@ module BigInt = struct
   let div : op = [%raw "(a, b) => a / b"]
   let rem : op = [%raw "(a, b) => a % b"]
 
+  let shiftLeft : op = [%raw "(a, b) => a << b"]
+  let shiftRight : op = [%raw "(a, b) => a >> b"]
+
+  let logAnd : op = [%raw "(a, b) => a & b"]
+  let logOr : op = [%raw "(a, b) => a | b"]
+
   let ( + ) = add
   let ( - ) = sub
   let ( * ) = mul
@@ -28,20 +34,33 @@ module BigInt = struct
 
   let ofString : string -> t = [%raw "(s) => BigInt(s)"]
   let ofInt : int -> t = [%raw "(n) => BigInt(n)"]
+
+  let toString : t -> string = [%raw "(s) => s.toString()"]
+
+  let one = ofInt 1
+
+  let testBit t i =
+    ((=) one (logAnd one (shiftRight t (ofInt i)) ))
+
 end
 
 module Params = struct
   let fieldSize : Curve.t -> BigInt.t = function
     | Curve.Bn128 ->
       BigInt.ofString "21888242871839275222246405745257275088548364400416034343698204186575808495617"
+
+  let sizeInBits : Curve.t -> int = function
+    | Curve.Bn128 -> 254
 end
 
-module Make (C : sig val curve : Curve.t end) = struct
+module Make0 (C : sig val size : BigInt.t end) = struct
   open C
 
   type t = BigInt.t
 
-  let size = Params.fieldSize curve
+  let size = size
+
+  let toString : t -> string = BigInt.toString
 
   let add x y =
     let open BigInt in
@@ -76,6 +95,8 @@ module Make (C : sig val curve : Curve.t end) = struct
     then t + size
     else t
 
+  let inv = invert
+
   let equal = BigInt.(=)
   let ( = ) = equal
 
@@ -97,5 +118,13 @@ module Make (C : sig val curve : Curve.t end) = struct
   let ofString x = BigInt.(rem (ofString x) size)
   let ofInt = BigInt.ofInt
 
+  let ofBigInt x = BigInt.(rem x size)
+
   let square x = x * x
 end
+
+module Make (C : sig val curve : Curve.t end) = struct
+  include Make0(struct let size = Params.fieldSize C.curve end)
+  let sizeInBits = Params.sizeInBits C.curve
+end
+

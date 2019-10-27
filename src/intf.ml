@@ -121,38 +121,32 @@ module type S = sig
     val ofArray : ('a -> Hash.t) -> 'a -> 'a array -> 'a t
   end
 
-  (*
-  module Integer : sig
-    type t
-
-    type divisionResult = {
-      quotient : t;
-      remainder : t;
-    }
-
-    val add : t -> t -> t
-
-    (* Automatically handle overflows *)
-    val mul : t -> t -> t
-
-    val divRem : t -> t -> divisionResult
-  end
-
-  module Signature : sig
+  module Schnorr : sig
     module PrivateKey : sig
       type t
 
-      val generate : unit -> t
+      val create : unit -> t
+
+      val toJSON : t -> < > Js.t
     end
 
     module PublicKey : sig
       type t
 
       val ofPrivateKey : PrivateKey.t -> t
+      val toJSON : t -> < > Js.t
     end
 
-    type t
-  end *)
+    module Signature : sig
+      type t
+
+      val check : t -> PublicKey.t -> Field.t array -> bool
+      val toJSON : t -> < > Js.t
+    end
+
+    val sign :
+      PrivateKey.t -> Field.t array -> Signature.t
+  end
 end
 
 module Obj = struct
@@ -199,6 +193,13 @@ module Obj = struct
       > Js.t
   end
 
+  module Schnorr = struct
+    module Private_key = struct
+      type t
+    end
+  end
+
+  (* TODO: Everything needs to/of JSON on it. (Or maybe just to) *)
   type 'field obj =
     < _MerkleTree : 'field Merkle_tree.obj
     ; _Field : 'field Field.obj
