@@ -1,3 +1,5 @@
+type json = < > Js.t
+
 module Sponge = struct
   module type Field = sig
     type t
@@ -68,6 +70,7 @@ end
 
 module type S = sig
   module Field : sig
+    (* Arithmetic and other operations on a prime order field. *)
     type t
 
     val (=) : t -> t -> bool
@@ -84,18 +87,24 @@ module type S = sig
     val div : t -> t -> t
 
     val negate : t -> t
-    val square : t -> t
     val invert : t -> t
+    val square : t -> t
+
     val one : t
     val zero : t
 
     val ofString : string -> t
     val ofInt : int -> t
+
+    val toString : t -> string
   end
 
   module Hash : sig
     type t = Field.t
 
+    (* Hash an array of elements using the Poseidon hash function.
+       This hash function is intended to be an ideal cryptographic hash function.
+    *)
     val hash : Field.t array -> t
   end
 
@@ -109,15 +118,23 @@ module type S = sig
         ; path  : Hash.t array
         }
 
+      (* Create a membership proof for a leaf at the given index. *)
       val create : 'a merkle_tree -> int -> t
 
+      (* Check a membership proof. *)
       val check
         : t
-        -> Hash.t (* root hash *)
-        -> Hash.t (* element hash *)
+        -> 
+        Hash.t (* root hash *)
+        ->  
+        Hash.t (* element hash *)
         -> bool
     end
 
+    (* Create a binary merkle tree with values of type 'a at the leaves.
+      The first argument is for hashing the leaves.
+      The second argument is a default value which will be used to padt
+      the given array to a power of 2 length. *)
     val ofArray : ('a -> Hash.t) -> 'a -> 'a array -> 'a t
   end
 
@@ -125,25 +142,29 @@ module type S = sig
     module PrivateKey : sig
       type t
 
+      (* Generate a private key using randomness from node's crypto API. *)
       val create : unit -> t
 
-      val toJSON : t -> < > Js.t
+      val toJSON : t -> json
     end
 
     module PublicKey : sig
       type t
 
+      (* Derive the public key corresponding to a given private key. *)
       val ofPrivateKey : PrivateKey.t -> t
-      val toJSON : t -> < > Js.t
+      val toJSON : t -> json
     end
 
     module Signature : sig
       type t
 
+      (* Verify a signature against the given public key and message. *)
       val check : t -> PublicKey.t -> Field.t array -> bool
-      val toJSON : t -> < > Js.t
+      val toJSON : t -> json
     end
 
+    (* Sign a message. *)
     val sign :
       PrivateKey.t -> Field.t array -> Signature.t
   end
