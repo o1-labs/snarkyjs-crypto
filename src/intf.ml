@@ -96,6 +96,8 @@ module type S = sig
     val ofString : string -> t
     val ofInt : int -> t
 
+    val ofBits : bool array -> t
+
     val toString : t -> string
 
     val testBit : t -> int -> bool

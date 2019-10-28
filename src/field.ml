@@ -8,7 +8,6 @@ module BigInt = struct
 
   let (>) : cmp = [%raw "(a, b) => a > b"]
   let (>=) : cmp = [%raw "(a, b) => a >= b"]
-  let (=) : cmp = [%raw "(a, b) => a === b"]
   let (<) : cmp = [%raw "(a, b) => a < b"]
   let (<=) : cmp = [%raw "(a, b) => a <= b"]
 
@@ -27,13 +26,23 @@ module BigInt = struct
   let logAnd : op = [%raw "(a, b) => a & b"]
   let logOr : op = [%raw "(a, b) => a | b"]
 
-  let ( + ) = add
-  let ( - ) = sub
-  let ( * ) = mul
-  let ( / ) = div
-
   let ofString : string -> t = [%raw "(s) => BigInt(s)"]
   let ofInt : int -> t = [%raw "(n) => BigInt(n)"]
+
+  let ofBits bits =
+    let n = Array.length bits in
+    let rec go acc i = 
+      if i = n
+      then acc
+      else 
+        let acc =
+          if bits.(i)
+          then logOr acc (shiftLeft one (ofInt i))
+          else acc
+        in
+        go acc (i + 1)
+    in
+    go zero 0
 
   let toString : t -> string = [%raw "(s) => s.toString()"]
 
@@ -42,6 +51,12 @@ module BigInt = struct
   let testBit t i =
     ((=) one (logAnd one (shiftRight t (ofInt i)) ))
 
+  let ( + ) = add
+  let ( - ) = sub
+  let ( * ) = mul
+  let ( / ) = div
+
+  let (=) : cmp = [%raw "(a, b) => a === b"]
 end
 
 module Params = struct
@@ -98,7 +113,6 @@ module Make0 (C : sig val size : BigInt.t end) = struct
   let inv = invert
 
   let equal = BigInt.(=)
-  let ( = ) = equal
 
   let div x y = mul x (invert y)
 
@@ -118,11 +132,15 @@ module Make0 (C : sig val size : BigInt.t end) = struct
   let ofString x = BigInt.(rem (ofString x) size)
   let ofInt = BigInt.ofInt
 
+  let ofBits = BigInt.ofBits
+
   let ofBigInt x = BigInt.(rem x size)
 
   let square x = x * x
 
   let testBit : t -> int -> bool = BigInt.testBit
+
+  let ( = ) = equal
 end
 
 module Make (C : sig val curve : Curve.t end) = struct
