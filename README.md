@@ -1,4 +1,4 @@
-
+See example.js for usage.
 
 # Build
 ```

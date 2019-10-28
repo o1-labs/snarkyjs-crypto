@@ -73,6 +73,12 @@ module BabyJubJub (Fq : sig
 
   let one = of_affine (map_pr Fq.ofString bn128.one )
 
+  let ofAffine = of_affine
+  let toAffine t =
+    match to_affine t with
+    | Some a -> a
+    | None -> failwith "toAffine: Identity"
+
   let scale ?init t s =
     let p = scale t s in
     match init with None -> p | Some init -> p + init

@@ -136,6 +136,16 @@ module type S = sig
       The second argument is a default value which will be used to padt
       the given array to a power of 2 length. *)
     val ofArray : ('a -> Hash.t) -> 'a -> 'a array -> 'a t
+
+    val root : 'a t -> Hash.t
+    val depth : 'a t -> int
+  end
+
+  module Group : sig
+    type t
+
+    val toAffine : t -> Field.t * Field.t
+    val ofAffine : Field.t * Field.t -> t
   end
 
   module Schnorr : sig
@@ -149,7 +159,7 @@ module type S = sig
     end
 
     module PublicKey : sig
-      type t
+      type t = Group.t
 
       (* Derive the public key corresponding to a given private key. *)
       val ofPrivateKey : PrivateKey.t -> t

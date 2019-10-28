@@ -179,6 +179,8 @@ let make_obj (type field) (module M : Intf.S with type Field.t = field)
     Obj.magic
     [%bs.obj{
       ofArray= M.MerkleTree.ofArray;
+      depth=M.MerkleTree.depth;
+      root=M.MerkleTree.root;
       _MembershipProof= membership_proof;
     }]
   in
@@ -188,6 +190,9 @@ let make_obj (type field) (module M : Intf.S with type Field.t = field)
     _Hash = hash;
     _MerkleTree = merkle_tree;
     _Schnorr=schnorr;
+    _Group={
+      toAffine=M.Group.toAffine;
+    }
   }]
 
 module Bn128 = Make(struct let curve = Curve.Bn128 end)

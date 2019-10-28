@@ -33,6 +33,10 @@ module Make
     | Element x -> hash_element x
     | Node (h, _, _) -> h
 
+  let root t = hash_tree t.hash_element t.tree
+
+  let depth t = t.depth
+
   let merge ~height:_ l r = Hash.hash [| l; r |]
 
   module MembershipProof = struct
@@ -99,7 +103,7 @@ module Make
     let hash_tree = hash_tree hash_element in
     let leaves =
       let n = Array.length leaves0 in
-      let padding = (1 lsl ceil_pow2 n) - n in
+      let padding = ceil_pow2 n - n in
       Array.append
         leaves0 
         (Array.make padding default)
