@@ -1,6 +1,6 @@
 {
   "name": "snarkyjs-crypto",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "scripts": {
     "clean": "bsb -clean-world",
     "build": "bsb -make-world",
@@ -16,6 +16,7 @@
   },
   "main": "src/universe.bs.js",
   "files": [
+    "src/*.bs.js",
     "src/*.ml*",
     "bsconfig.json"
   ]
