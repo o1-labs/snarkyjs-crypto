@@ -121,6 +121,8 @@ module Make0 (C : sig val size : BigInt.t end) = struct
   let ofBigInt x = BigInt.(rem x size)
 
   let square x = x * x
+
+  let testBit : t -> int -> bool = BigInt.testBit
 end
 
 module Make (C : sig val curve : Curve.t end) = struct

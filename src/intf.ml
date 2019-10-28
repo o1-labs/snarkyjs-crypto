@@ -97,6 +97,8 @@ module type S = sig
     val ofInt : int -> t
 
     val toString : t -> string
+
+    val testBit : t -> int -> bool
   end
 
   module Hash : sig

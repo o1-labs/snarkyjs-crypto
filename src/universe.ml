@@ -146,6 +146,7 @@ let make_obj (type field) (module M : Intf.S with type Field.t = field)
       ofInt=ofInt;
       ofString=ofString;
       toString=toString;
+      testBit=testBit;
       square=square;
       invert=invert;
       negate=negate;
