@@ -85,6 +85,8 @@ module Make(C : sig val curve : Curve.t end) : Intf.S = struct
 
       let bufferGet : buffer -> int -> int = [%raw "(b, i) => b[i]"]
 
+      let () = [%raw "(global.crypto || (global.crypto = require('crypto')))"]
+
       let randomBytes : int -> buffer = [%raw "(x) => crypto.randomBytes(x)"]
 
       let create () =
