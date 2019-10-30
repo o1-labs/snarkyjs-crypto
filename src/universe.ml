@@ -107,6 +107,10 @@ module Make(C : sig val curve : Curve.t end) : Intf.S = struct
 
       let toJSON t : < > Js.t =
         Obj.magic (Field0.BigInt.toString t)
+
+      let toString (t: t) = Field0.BigInt.toString t
+
+      let ofString (s : string) : t = Field0.BigInt.ofString s
     end
   end
 

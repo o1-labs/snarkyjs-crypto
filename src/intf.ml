@@ -159,6 +159,10 @@ module type S = sig
       (* Generate a private key using randomness from node's crypto API. *)
       val create : unit -> t
 
+      val ofString : string -> t
+
+      val toString : t -> string
+
       val toJSON : t -> json
     end
 

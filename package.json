@@ -1,6 +1,6 @@
 {
   "name": "snarkyjs-crypto",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "scripts": {
     "clean": "bsb -clean-world",
     "build": "bsb -make-world",
